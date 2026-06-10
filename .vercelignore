@@ -1,0 +1,12 @@
+# Claude Code config, rules and skills — not part of the app
+.claude
+
+# Editor settings
+.vscode
+
+# Deliberately rule-breaking demo files (not referenced by index.html)
+scripts/*.bad.js
+
+# Docs — not needed at runtime
+README.md
+api/README.md
