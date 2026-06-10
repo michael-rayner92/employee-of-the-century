@@ -1,7 +1,9 @@
 /* ============================================================
    Employee of the Month — Live Results Center
    Broadcast / "election night" theme.
-   Layout is fixed-width by design (responsiveness not a goal).
+   Desktop is a locked full-viewport broadcast layout; below
+   900px the page stacks and scrolls — see RESPONSIVE LAYOUT
+   at the bottom of this file.
    ============================================================ */
 
 :root {
@@ -352,6 +354,9 @@ body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  /* Horizontal scroll appears only when a row can't shrink any further
+     (rows get a min-width floor at narrow widths — see RESPONSIVE LAYOUT). */
+  overflow-x: auto;
 }
 
 /* ============================================================
@@ -887,10 +892,10 @@ body {
    FOOTER
    ============================================================ */
 .app-footer {
-  height: var(--footer-h);
+  min-height: var(--footer-h);
   display: flex;
   align-items: center;
-  padding: 0 18px;
+  padding: 8px 18px;
   background: var(--bg-panel);
   border-top: 1px solid var(--border);
 }
@@ -954,6 +959,8 @@ body {
 /* Dialog panel */
 .god-mode-dialog {
   width: min(960px, 95vw);
+  max-height: 90vh;
+  max-height: 90dvh;
   background: var(--bg-card);
   border: 1px solid #7c3aed;
   border-radius: 12px;
@@ -1000,12 +1007,14 @@ body {
 
 .god-mode-dialog__body {
   padding: 20px;
+  overflow-y: auto;
 }
 
-/* Scenario cards grid */
+/* Scenario cards grid — auto-fit keeps 5-up on desktop and reflows
+   to fewer columns as the dialog narrows */
 .god-mode-cards {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 14px;
 }
 
@@ -1201,4 +1210,129 @@ body {
   color: var(--text-dim);
   font-family: monospace;
   letter-spacing: 0.5px;
+}
+
+/* ============================================================
+   RESPONSIVE LAYOUT
+   Desktop keeps the locked broadcast view; these overrides
+   adapt it for laptops (≤1200px), tablets (≤900px — page
+   stacks and scrolls), and phones (≤640px and down).
+   Blocks are ordered widest → narrowest so later rules win.
+   ============================================================ */
+
+/* ---------- Laptops / small desktops ---------- */
+@media (max-width: 1200px) {
+  :root {
+    --sidebar-w: 240px;
+    --gap: 14px;
+  }
+  .leaderboard__row { grid-template-columns: 28px 130px 1fr 52px 14px; }
+}
+
+/* ---------- Tablets & below: stack and scroll ---------- */
+@media (max-width: 900px) {
+  body {
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: auto;
+  }
+
+  .app-shell {
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  /* Sidebar becomes a horizontally scrollable pill bar */
+  .sidebar {
+    width: 100%;
+    flex: 0 0 auto;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 12px 14px 8px;
+  }
+  .sidebar__heading { margin: 0 4px 10px; }
+  .nav__list {
+    flex-direction: row;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .nav__list > li { flex: 0 0 auto; }
+  .nav__option {
+    width: auto;
+    padding: 8px 12px;
+    white-space: nowrap;
+  }
+  .sidebar__footer { display: none; }
+
+  /* Columns stack; the page scrolls instead of individual cards */
+  .main {
+    flex-direction: column;
+    overflow: visible;
+  }
+  .column--primary { flex: 0 0 auto; max-width: none; }
+  .column--secondary { flex: 0 0 auto; overflow: visible; }
+  .card--large { flex: 0 0 auto; }
+  #card-pundit-panel { flex: 0 0 auto; }
+}
+
+/* ---------- Phones ---------- */
+@media (max-width: 640px) {
+  .breaking-banner__label {
+    padding: 0 12px;
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+  .ticker { padding: 0 12px; }
+  .ticker__item { font-size: 14px; }
+  .breaking-banner__clock { padding: 0 12px; gap: 10px; }
+
+  .main { padding: 12px; gap: 12px; }
+  .column { gap: 12px; }
+  .card-row { flex-direction: column; }
+  .card__header { padding: 10px 12px; }
+  .card__body { padding: 12px; }
+  .card__title { font-size: 14px; }
+  .card--large .card__title { font-size: 16px; }
+
+  /* Leaderboard reflows to two rows: name + pct on top, bar below */
+  .leaderboard { gap: 16px; }
+  .leaderboard__row {
+    grid-template-columns: 24px 1fr 48px 14px;
+    grid-template-rows: auto auto;
+    gap: 6px 8px;
+  }
+  .leaderboard__rank { grid-row: 1 / span 2; font-size: 16px; }
+  .leaderboard__name { grid-column: 2; grid-row: 1; }
+  .leaderboard__pct { grid-column: 3; grid-row: 1; }
+  .leaderboard__trend { grid-column: 4; grid-row: 1; }
+  .leaderboard__bar-wrap { grid-column: 2 / -1; grid-row: 2; height: 14px; }
+
+  .stat__value { font-size: 28px; }
+
+  .god-mode-dialog__body { padding: 14px; }
+  .god-mode-cards { gap: 10px; }
+  .loading-dialog { padding: 28px 20px; }
+}
+
+/* ---------- Small phones ---------- */
+@media (max-width: 520px) {
+  .breaking-banner__time { display: none; }
+}
+
+@media (max-width: 420px) {
+  /* Floor the data rows so the card body scrolls horizontally
+     instead of crushing the text into unreadability */
+  .district-row,
+  .bellwether-row { min-width: 300px; }
+  .precinct-row { min-width: 240px; }
+}
+
+/* ---------- Touch devices ---------- */
+@media (hover: none) {
+  /* Hover-peek doesn't exist on touch — keep more of the trigger visible */
+  .god-mode-trigger { transform: translateX(calc(100% - 52px)); }
 }
