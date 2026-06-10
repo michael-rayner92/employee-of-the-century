@@ -39,8 +39,15 @@
 
     <!-- ---------- LEFT SIDEBAR: alternate views ---------- -->
     <aside id="sidebar-views" class="sidebar" aria-label="Coverage views">
-      <h2 class="sidebar__heading">Coverage Views</h2>
-      <nav class="nav" aria-label="Select a data view">
+      <div class="sidebar__header">
+        <h2 class="sidebar__heading">Coverage Views</h2>
+        <button type="button" id="sidebar-toggle" class="sidebar__toggle"
+                aria-expanded="true" aria-controls="sidebar-nav"
+                aria-label="Collapse coverage views menu">
+          <span aria-hidden="true">☰</span>
+        </button>
+      </div>
+      <nav id="sidebar-nav" class="nav" aria-label="Select a data view">
         <ul class="nav__list" role="list">
           <li>
             <button type="button" class="nav__option is-active" id="view-live-results"
@@ -122,7 +129,7 @@
         <!-- LARGE headline card -->
         <article id="card-main-results" class="card card--large" data-view-target="live-results">
           <header class="card__header">
-            <h2 class="card__title">Race for Neanex Employee of the Month</h2>
+            <h2 class="card__title">Neanex Votes: Employee of the Month</h2>
             <span class="card__badge" data-metric="precincts-reporting" data-value="0">
               0% reporting
             </span>

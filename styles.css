@@ -30,6 +30,7 @@
   /* Sizing (fixed layout) */
   --banner-h:       56px;
   --sidebar-w:      280px;
+  --sidebar-w-rail: 64px;   /* icon-only rail when Coverage Views is collapsed */
   --footer-h:       40px;
   --gap:            18px;
   --radius:         10px;
@@ -186,14 +187,49 @@ body {
   padding: 18px 14px;
   display: flex;
   flex-direction: column;
+  transition: width 0.25s ease, flex-basis 0.25s ease, padding 0.25s ease;
+}
+
+.sidebar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 4px 0 14px;
 }
 
 .sidebar__heading {
-  margin: 4px 8px 14px;
+  margin: 0 0 0 8px;
   font-size: 12px;
   letter-spacing: 1.5px;
   text-transform: uppercase;
   color: var(--text-dim);
+}
+
+.sidebar__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.sidebar__toggle:hover {
+  background: rgba(59, 130, 246, 0.12);
+  color: var(--text);
+}
+
+.sidebar__toggle:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
 }
 
 .nav__list {
@@ -1091,7 +1127,13 @@ body {
    Shown on all cards before Genesis is activated.
    ============================================================ */
 
-/* Leaderboard empty state (replaces the full <ol>) */
+/* Pre-init list: fill the card body so the empty state sits dead-center */
+.leaderboard--empty {
+  flex: 1;
+  justify-content: center;
+}
+
+/* Leaderboard empty state (replaces the rows) */
 .leaderboard__empty-state {
   list-style: none;
   display: flex;
@@ -1220,6 +1262,25 @@ body {
    Blocks are ordered widest → narrowest so later rules win.
    ============================================================ */
 
+/* ---------- Desktop only: collapsed sidebar = icon rail ---------- */
+@media (min-width: 901px) {
+  .sidebar.is-collapsed {
+    width: var(--sidebar-w-rail);
+    flex-basis: var(--sidebar-w-rail);
+    padding: 18px 10px;
+  }
+  .sidebar.is-collapsed .sidebar__header {
+    justify-content: center;
+  }
+  .sidebar.is-collapsed .sidebar__heading,
+  .sidebar.is-collapsed .nav__label,
+  .sidebar.is-collapsed .sidebar__footer { display: none; }
+  .sidebar.is-collapsed .nav__option {
+    justify-content: center;
+    padding: 10px 0;
+  }
+}
+
 /* ---------- Laptops / small desktops ---------- */
 @media (max-width: 1200px) {
   :root {
@@ -1252,7 +1313,10 @@ body {
     border-bottom: 1px solid var(--border);
     padding: 12px 14px 8px;
   }
-  .sidebar__heading { margin: 0 4px 10px; }
+  .sidebar__header { margin: 0 0 10px; }
+  /* Collapsed on mobile = hide the pill row, keep the header bar */
+  .sidebar.is-collapsed .nav { display: none; }
+  .sidebar.is-collapsed { padding-bottom: 12px; }
   .nav__list {
     flex-direction: row;
     gap: 8px;

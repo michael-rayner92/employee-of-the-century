@@ -61,7 +61,36 @@ function onViewChange(viewId) {
 }
 
 /* ------------------------------------------------------------
-   3. GOD MODE
+   3. SIDEBAR COLLAPSE
+   ------------------------------------------------------------ */
+/**
+ * Wires the Coverage Views hamburger toggle. Collapsing adds
+ * `is-collapsed` to the sidebar — an icon-only rail on desktop,
+ * a hidden pill row on mobile (see styles.css RESPONSIVE LAYOUT).
+ */
+function initSidebarToggle() {
+  const sidebar = document.getElementById("sidebar-views");
+  const toggle  = document.getElementById("sidebar-toggle");
+  if (!sidebar || !toggle) return;
+
+  // Mirror each label into a title so the icon rail keeps tooltips.
+  sidebar.querySelectorAll(".nav__option").forEach((btn) => {
+    const label = btn.querySelector(".nav__label");
+    if (label) btn.title = label.textContent.trim();
+  });
+
+  toggle.addEventListener("click", () => {
+    const isCollapsed = sidebar.classList.toggle("is-collapsed");
+    toggle.setAttribute("aria-expanded", String(!isCollapsed));
+    toggle.setAttribute(
+      "aria-label",
+      isCollapsed ? "Expand coverage views menu" : "Collapse coverage views menu"
+    );
+  });
+}
+
+/* ------------------------------------------------------------
+   4. GOD MODE
    ------------------------------------------------------------ */
 let godModeActivatedCount = 0;
 
@@ -212,6 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
   democracyApi.headlines.init();
   initBroadcastClock();
   initViewSwitcher();
+  initSidebarToggle();
   initGodMode();
   democracyApi.render.leaderboard();
   democracyApi.render.callOfNight();
