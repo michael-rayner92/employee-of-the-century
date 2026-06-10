@@ -65,7 +65,7 @@ Derived from the existing code in this repo. Match these when writing or editing
 
 ## Use the `democracyApi` layer
 
-- **Always reach for an existing `democracyApi` method before writing your own logic.** If `api/democracy-api.js` already exposes what you need, call it — never reimplement it inline:
+- **Always reach for an existing `democracyApi` method before writing your own logic.** If `lib/democracy-api.js` already exposes what you need, call it — never reimplement it inline:
   - Finding the leader → `democracyApi.getFrontrunner(opts)` / `democracyApi.getLeaderNickname()`, not an ad-hoc `[...VOTES].sort(...)` or `{leader}` substitution.
   - Vote trends → `votes.snapshotPcts()` + `votes.applyTrends(prevPcts)`, not manual `.trend` assignment.
   - Storyline standings → `votes.enforceStorylineConstraints()`, not hand-moving points.
@@ -73,7 +73,7 @@ Derived from the existing code in this repo. Match these when writing or editing
   - Bellwether leans → `bellwethers.applyLeanings()`.
   - Repainting the page → `democracyApi.render.all()` (or a specific `render.*` card method), never direct DOM writes to the cards or ticker from outside the API.
 - Scenario scripts (`scripts/*.js`) and `script.js` may set scenario-specific fields (`p.status`, pundit predictions, `CALL_OF_NIGHT`, `APP_STATE.status`) directly, but anything `democracyApi` covers must go through it.
-- If you find yourself writing the same data/DOM logic in a second scenario, move it into `democracyApi` instead of duplicating it — and update `api/README.md` to document the new member.
+- If you find yourself writing the same data/DOM logic in a second scenario, move it into `democracyApi` instead of duplicating it — and update `lib/README.md` to document the new member.
 - Members prefixed `_` are internal — never call them from outside `democracyApi`.
 
 ## Domain invariants

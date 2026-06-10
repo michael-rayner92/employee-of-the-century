@@ -21,14 +21,14 @@ Deploys to Vercel as a plain static site (no build command, repo root as output)
 Global-script design — no modules, no bundler. Everything is a global, and **script load order in `index.html` is the dependency graph**:
 
 ```
-data/*.js  →  utils/utils.js  →  api/democracy-api.js  →  script.js  →  scripts/*.js
+data/*.js  →  utils/utils.js  →  lib/democracy-api.js  →  script.js  →  scripts/*.js
 ```
 
 Layering rules (enforced by convention — keep them intact):
 
 - **`data/*.js`** — plain data globals, the single source of truth: `APP_STATE`, `TEAM`, `VOTES`, `PRECINCTS`, `PUNDITS`, `NEWS_HEADLINES_BY_STATUS`, `CALL_OF_NIGHT`, `GOD_MODE_SCENARIOS`.
 - **`Utils`** (`utils/utils.js`) — pure, domain-free helpers only. Must know nothing about the data globals or the DOM. Anything domain- or DOM-aware belongs in `democracyApi` instead.
-- **`democracyApi`** (`api/democracy-api.js`) — the election data + DOM layer: derived reads (`getFrontrunner`, `getLeaderNickname`), shared mutations (`votes.*`, `precincts.*`, `bellwethers.*`), and all rendering (`headlines.*`, `render.*`, `effects.*`). Members prefixed `_` are internal. `api/README.md` is a hand-maintained summary of this module's JSDoc — **update it whenever the API changes**.
+- **`democracyApi`** (`lib/democracy-api.js`) — the election data + DOM layer: derived reads (`getFrontrunner`, `getLeaderNickname`), shared mutations (`votes.*`, `precincts.*`, `bellwethers.*`), and all rendering (`headlines.*`, `render.*`, `effects.*`). Members prefixed `_` are internal. `lib/README.md` is a hand-maintained summary of this module's JSDoc — **update it whenever the API changes**.
 - **`script.js`** — page bootstrap only: broadcast clock, sidebar view switcher, God Mode dialog + scenario dispatch (`onGodModeAction` maps scenario id → `run*()` function).
 - **`scripts/*.js`** — one God Mode scenario per file, each exposing a single `run*()` function. Bespoke storyline beats (pundit quotes, projection copy, status thresholds) stay inline in the scenario; logic repeated across scenarios belongs in `democracyApi`.
 
@@ -38,7 +38,7 @@ Layering rules (enforced by convention — keep them intact):
 
 ### Scenario script pattern
 
-Every scenario follows the same shape (see `api/README.md` "Typical usage"):
+Every scenario follows the same shape (see `lib/README.md` "Typical usage"):
 
 1. Snapshot percentages: `const prevPcts = democracyApi.votes.snapshotPcts()` — **before** mutating.
 2. Reassign `VOTES[i].pct` — percentages **must sum to exactly 100**; use `Utils.largestRemainderApportion(weights)` to guarantee this.

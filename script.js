@@ -8,7 +8,7 @@
 
    The election data model and all results rendering (the headline
    ticker, every card, the confetti finale) live in democracyApi
-   (api/democracy-api.js). Generic helpers live in Utils (utils/utils.js).
+   (lib/democracy-api.js). Generic helpers live in Utils (utils/utils.js).
    ============================================================ */
 
 /* ------------------------------------------------------------

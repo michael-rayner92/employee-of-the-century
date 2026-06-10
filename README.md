@@ -101,15 +101,15 @@ URL here once deployed. -->
 
 A simple, layered, global-script design (no modules/bundler), loaded in order:
 
-**`data/*.js` → `utils/utils.js` → `api/democracy-api.js` → `script.js` → `scripts/*.js`**
+**`data/*.js` → `utils/utils.js` → `lib/democracy-api.js` → `script.js` → `scripts/*.js`**
 
 - **`data/`** — plain data globals; the single source of truth for runtime state.
 - **`Utils`** ([`utils/utils.js`](utils/utils.js)) — generic, domain-free helpers
   (percentage apportionment, trend derivation, shuffle, time formatting).
-- **`democracyApi`** ([`api/democracy-api.js`](api/democracy-api.js)) — the
+- **`democracyApi`** ([`lib/democracy-api.js`](lib/democracy-api.js)) — the
   election **data + DOM layer**: derived reads, the shared mutations every
   scenario repeats, and all card/ticker rendering. See the
-  **[API reference](api/README.md)**.
+  **[API reference](lib/README.md)**.
 - **`scripts/`** — each God Mode scenario mutates the data, then calls
   `democracyApi.render.all()`. Bespoke storyline beats live here; shared logic
   lives in the API.

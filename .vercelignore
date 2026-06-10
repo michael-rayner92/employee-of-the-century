@@ -9,4 +9,4 @@ scripts/*.bad.js
 
 # Docs — not needed at runtime
 README.md
-api/README.md
+lib/README.md

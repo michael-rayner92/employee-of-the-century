@@ -4,7 +4,7 @@ The election **data + DOM layer**. A single global object that the scenario
 scripts (`scripts/*.js`) and the page bootstrap (`script.js`) talk to instead
 of poking the data globals or the DOM directly.
 
-> **Source of truth:** [`api/democracy-api.js`](./democracy-api.js). This file
+> **Source of truth:** [`lib/democracy-api.js`](./democracy-api.js). This file
 > is a hand-maintained summary of the JSDoc in that module — update it when the
 > API changes.
 
@@ -39,7 +39,7 @@ It reads/writes the data globals defined in `data/*.js`: `VOTES`, `TEAM`,
 ([`utils/utils.js`](../utils/utils.js)).
 
 **Load order** (see `index.html`): data globals → `utils/utils.js` →
-`api/democracy-api.js` → `script.js` → `scripts/*.js`.
+`lib/democracy-api.js` → `script.js` → `scripts/*.js`.
 
 ## Typical usage
 
