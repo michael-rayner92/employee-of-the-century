@@ -31,15 +31,7 @@ function runOperationBirthdayCake() {
   // was already polling well, and capped so nobody else crosses 10%.
   const others = VOTES.filter(v => v.teamId !== HUSSEIN_ID && v.teamId !== MICHAEL_ID);
   const ow     = others.map(v => v.pct + 0.5);
-  const owTot  = ow.reduce((s, w) => s + w, 0) || 1;
-  const exact  = ow.map(w => (w / owTot) * remaining);
-  const alloc  = exact.map(Math.floor);
-  const leftover = remaining - alloc.reduce((s, x) => s + x, 0);
-  exact
-    .map((v, i) => ({ i, frac: v % 1 }))
-    .sort((a, b) => b.frac - a.frac)
-    .slice(0, leftover)
-    .forEach(({ i }) => alloc[i]++);
+  const alloc  = Utils.largestRemainderApportion(ow, remaining);
   // Safety cap: keep every also-ran at 10% or below, spilling onto the lowest.
   for (let i = 0; i < alloc.length; i++) {
     while (alloc[i] > 10) {
@@ -49,14 +41,12 @@ function runOperationBirthdayCake() {
     }
   }
 
-  const prevPcts = VOTES.map(v => v.pct);
+  const prevPcts = democracyApi.votes.snapshotPcts();
   VOTES.find(v => v.teamId === HUSSEIN_ID).pct = husseinPct;
   VOTES.find(v => v.teamId === MICHAEL_ID).pct = michaelPct;
   others.forEach((v, i) => { v.pct = alloc[i]; });
 
-  VOTES.forEach((v, i) => {
-    v.trend = v.pct > prevPcts[i] ? "up" : v.pct < prevPcts[i] ? "down" : "stable";
-  });
+  democracyApi.votes.applyTrends(prevPcts);
 
   // --- 2. The "Australian Office" appears (guard against re-runs) -------
   if (!PRECINCTS.find(p => p.id === "australian-office")) {
@@ -76,16 +66,14 @@ function runOperationBirthdayCake() {
 
   // --- 3. Reporting climbs to ~89% -------------------------------------
   //   (10·1.00 + 8·0.90 + 6·0.68 + 1·0.99) / 25 = 22.27 / 25 = 89.1% → 89%
-  const reportingMap = {
+  democracyApi.precincts.setReporting({
     "main-office": 100,
     "502nd": 90,
     "remote": 68,
     "australian-office": 99,
-  };
+  });
 
   PRECINCTS.forEach(p => {
-    p.reportingPct = reportingMap[p.id] ?? p.reportingPct;
-
     // The phantom precinct keeps its hand-stuffed 99%-for-Michael result.
     if (p.id === "australian-office") {
       p.leadingCandidateId = MICHAEL_ID;
@@ -94,20 +82,7 @@ function runOperationBirthdayCake() {
       return;
     }
 
-    const members = p.memberIds
-      .map(id => VOTES.find(v => v.teamId === id))
-      .filter(Boolean)
-      .sort((a, b) => b.pct - a.pct);
-
-    if (members.length > 0 && members[0].pct > 0) {
-      p.leadingCandidateId = members[0].teamId;
-      p.leadMarginPct = members.length > 1
-        ? parseFloat((members[0].pct - members[1].pct).toFixed(1))
-        : members[0].pct;
-    } else {
-      p.leadingCandidateId = null;
-      p.leadMarginPct      = null;
-    }
+    democracyApi.precincts.recomputeLeader(p);
 
     // Near-complete or clearly-decided desks are CALLED; tight ones a KEY
     // BATTLE. The overall race is still NOT projected (see below).
@@ -130,12 +105,6 @@ function runOperationBirthdayCake() {
 
   APP_STATE.status = "update4";
 
-  applyBellwetherLeanings();
-  renderHeadlines();
-  renderLeaderboard();
-  renderCallOfNight();
-  renderPrecincts();
-  renderKeyDistricts();
-  renderBellwetherDesk();
-  renderPunditPanel();
+  democracyApi.bellwethers.applyLeanings();
+  democracyApi.render.all();
 }

@@ -17,7 +17,7 @@
      Evy gleefully claims Michael's surge, and Vincent still has no call.
    - Sets APP_STATE.status = "update3" and re-renders everything.
 
-   NOTE: this round intentionally does NOT call enforceVoteConstraints()
+   NOTE: this round intentionally does NOT call votes.enforceStorylineConstraints()
    — that helper keeps Michael out of the top 3, which was only an
    early-round (genesis + votes-2) storyline beat. From here Michael is a
    frontrunner by design.
@@ -25,20 +25,6 @@
 function runThumbOnScale() {
   const MICHAEL_ID = 19; // Michael Rayner — muscled into 2nd this round
   const HUSSEIN_ID = 12; // Hussein Aldor — holds the 3rd horse (Cille's call)
-
-  // Normalise positive weights to integer percentages summing to exactly 100.
-  function toPercentages(weights) {
-    const total     = weights.reduce((s, w) => s + w, 0) || 1;
-    const exact     = weights.map(w => (w / total) * 100);
-    const floored   = exact.map(Math.floor);
-    const remainder = 100 - floored.reduce((s, p) => s + p, 0);
-    exact
-      .map((v, i) => ({ i, frac: v % 1 }))
-      .sort((a, b) => b.frac - a.frac)
-      .slice(0, remainder)
-      .forEach(({ i }) => floored[i]++);
-    return floored;
-  }
 
   const prevByPct = [...VOTES].sort((a, b) => b.pct - a.pct);
   const leaderId  = prevByPct[0].teamId;
@@ -70,7 +56,7 @@ function runThumbOnScale() {
   });
 
   // Sort the resulting values high→low and hand them out by intended rank.
-  const sortedVals = [...toPercentages(weights)].sort((a, b) => b - a);
+  const sortedVals = [...Utils.largestRemainderApportion(weights)].sort((a, b) => b - a);
   const assigned   = {};
   assigned[firstId]    = sortedVals[0]; // incumbent leader stays #1
   assigned[MICHAEL_ID] = sortedVals[1]; // Michael slots into #2
@@ -83,7 +69,7 @@ function runThumbOnScale() {
   packIds.forEach((id, k) => { assigned[id] = sortedVals[3 + k]; });
 
   // Apply the new values.
-  const prevPcts = VOTES.map(v => v.pct);
+  const prevPcts = democracyApi.votes.snapshotPcts();
   VOTES.forEach(v => { v.pct = assigned[v.teamId]; });
 
   // Guarantee a strict ordering first > Michael > third > pack, so an integer
@@ -110,38 +96,13 @@ function runThumbOnScale() {
   liftAbove(first,   michael.pct);                               // leader clear of Michael
 
   // Derive trends from the change.
-  VOTES.forEach((v, i) => {
-    v.trend = v.pct > prevPcts[i] ? "up" : v.pct < prevPcts[i] ? "down" : "stable";
-  });
+  democracyApi.votes.applyTrends(prevPcts);
 
   // Precinct reporting that yields ~71% overall:
   //   (10·0.95 + 8·0.72 + 6·0.30) / 24 = 17.06 / 24 = 71.1% → 71%
-  const reportingMap = { "main-office": 95, "502nd": 72, "remote": 30 };
-
+  democracyApi.precincts.setReporting({ "main-office": 95, "502nd": 72, "remote": 30 });
   PRECINCTS.forEach(p => {
-    p.reportingPct = reportingMap[p.id] ?? 0;
-
-    if (p.reportingPct === 0) {
-      p.status             = "PENDING";
-      p.leadingCandidateId = null;
-      p.leadMarginPct      = null;
-      return;
-    }
-
-    const members = p.memberIds
-      .map(id => VOTES.find(v => v.teamId === id))
-      .filter(Boolean)
-      .sort((a, b) => b.pct - a.pct);
-
-    if (members.length > 0 && members[0].pct > 0) {
-      p.leadingCandidateId = members[0].teamId;
-      p.leadMarginPct = members.length > 1
-        ? parseFloat((members[0].pct - members[1].pct).toFixed(1))
-        : members[0].pct;
-    } else {
-      p.leadingCandidateId = null;
-      p.leadMarginPct      = null;
-    }
+    democracyApi.precincts.recomputeLeader(p);
 
     // At 71% the well-reported, decided desks get CALLED; tight ones remain a
     // KEY BATTLE. The overall race is still NOT projected (see below).
@@ -175,12 +136,6 @@ function runThumbOnScale() {
 
   APP_STATE.status = "update3";
 
-  applyBellwetherLeanings();
-  renderHeadlines();
-  renderLeaderboard();
-  renderCallOfNight();
-  renderPrecincts();
-  renderKeyDistricts();
-  renderBellwetherDesk();
-  renderPunditPanel();
+  democracyApi.bellwethers.applyLeanings();
+  democracyApi.render.all();
 }

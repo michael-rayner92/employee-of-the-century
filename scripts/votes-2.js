@@ -17,21 +17,6 @@
    - Sets APP_STATE.status = "update2" and re-renders everything.
    ============================================================ */
 function runVotes2() {
-  // Normalise an array of positive weights to integer percentages
-  // summing to exactly 100 (largest-remainder method).
-  function toPercentages(weights) {
-    const total   = weights.reduce((s, w) => s + w, 0) || 1;
-    const exact   = weights.map(w => (w / total) * 100);
-    const floored = exact.map(Math.floor);
-    const remainder = 100 - floored.reduce((s, p) => s + p, 0);
-    exact
-      .map((v, i) => ({ i, frac: v % 1 }))
-      .sort((a, b) => b.frac - a.frac)
-      .slice(0, remainder)
-      .forEach(({ i }) => floored[i]++);
-    return floored;
-  }
-
   // Consolidate the field: boost the current frontrunners, shrink the
   // tail. Evolving from the existing standings keeps trends believable.
   const ranked     = [...VOTES].sort((a, b) => b.pct - a.pct);
@@ -46,45 +31,19 @@ function runVotes2() {
     return base * factor * jitter;
   });
 
-  const newPcts  = toPercentages(weights);
-  const prevPcts = VOTES.map(v => v.pct);
+  const newPcts  = Utils.largestRemainderApportion(weights);
+  const prevPcts = democracyApi.votes.snapshotPcts();
   VOTES.forEach((entry, i) => { entry.pct = newPcts[i]; });
   // Enforce the fixed storyline constraints (Hussein in the top 3, Michael
   // out of it) before deriving trends, so the arrows match the final order.
-  enforceVoteConstraints();
-  VOTES.forEach((entry, i) => {
-    entry.trend = entry.pct > prevPcts[i] ? "up" : entry.pct < prevPcts[i] ? "down" : "stable";
-  });
+  democracyApi.votes.enforceStorylineConstraints();
+  democracyApi.votes.applyTrends(prevPcts);
 
   // Precinct reporting that yields ~56% overall weighted average:
   //   (10·0.90 + 8·0.45 + 6·0.15) / 24 = 13.5 / 24 = 56.25% → 56%
-  const reportingMap = { "main-office": 90, "502nd": 45, "remote": 15 };
-
+  democracyApi.precincts.setReporting({ "main-office": 90, "502nd": 45, "remote": 15 });
   PRECINCTS.forEach(p => {
-    p.reportingPct = reportingMap[p.id] ?? 0;
-
-    if (p.reportingPct === 0) {
-      p.status             = "PENDING";
-      p.leadingCandidateId = null;
-      p.leadMarginPct      = null;
-      return;
-    }
-
-    // Leading candidate among this precinct's members
-    const members = p.memberIds
-      .map(id => VOTES.find(v => v.teamId === id))
-      .filter(Boolean)
-      .sort((a, b) => b.pct - a.pct);
-
-    if (members.length > 0 && members[0].pct > 0) {
-      p.leadingCandidateId = members[0].teamId;
-      p.leadMarginPct = members.length > 1
-        ? parseFloat((members[0].pct - members[1].pct).toFixed(1))
-        : members[0].pct;
-    } else {
-      p.leadingCandidateId = null;
-      p.leadMarginPct      = null;
-    }
+    democracyApi.precincts.recomputeLeader(p);
 
     // A well-reported precinct with a tight margin is a KEY BATTLE.
     // Nothing is CALLED yet — 56% overall is still too early.
@@ -94,7 +53,7 @@ function runVotes2() {
   });
 
   // Re-point pundit predictions at the new standings (Vincent stays "No call").
-  const HUSSEIN_ID      = 12; // Hussein Aldor — guaranteed a top-3 spot (see enforceVoteConstraints)
+  const HUSSEIN_ID      = 12; // Hussein Aldor — guaranteed a top-3 spot (see votes.enforceStorylineConstraints)
   const remoteMemberIds = (PRECINCTS.find(p => p.id === "remote") || {}).memberIds || [];
   const remoteLeader    = [...VOTES]
     .filter(v => remoteMemberIds.includes(v.teamId))
@@ -112,12 +71,6 @@ function runVotes2() {
 
   APP_STATE.status = "update2";
 
-  applyBellwetherLeanings();
-  renderHeadlines();
-  renderLeaderboard();
-  renderCallOfNight();
-  renderPrecincts();
-  renderKeyDistricts();
-  renderBellwetherDesk();
-  renderPunditPanel();
+  democracyApi.bellwethers.applyLeanings();
+  democracyApi.render.all();
 }

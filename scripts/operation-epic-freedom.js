@@ -23,7 +23,7 @@ function runOperationEpicFreedom() {
     .filter(v => v.teamId !== MICHAEL_ID && v.teamId !== HUSSEIN_ID)
     .sort((a, b) => b.pct - a.pct)[0];
 
-  const prevPcts = VOTES.map(v => v.pct);
+  const prevPcts = democracyApi.votes.snapshotPcts();
   VOTES.forEach(v => { v.pct = 0; v.disqualified = false; });
 
   const michaelV = VOTES.find(v => v.teamId === MICHAEL_ID);
@@ -33,31 +33,12 @@ function runOperationEpicFreedom() {
   husseinV.pct = 0;
   husseinV.disqualified = true; // struck from the record
 
-  VOTES.forEach((v, i) => {
-    v.trend = v.disqualified            ? "down"
-            : v.pct > prevPcts[i]       ? "up"
-            : v.pct < prevPcts[i]       ? "down"
-            : "stable";
-  });
+  democracyApi.votes.applyTrends(prevPcts);
 
   // --- 2. Every precinct closes at 100% --------------------------------
   PRECINCTS.forEach(p => {
     p.reportingPct = 100;
-
-    const members = p.memberIds
-      .map(id => VOTES.find(v => v.teamId === id))
-      .filter(v => v && !v.disqualified)
-      .sort((a, b) => b.pct - a.pct);
-
-    if (members.length > 0 && members[0].pct > 0) {
-      p.leadingCandidateId = members[0].teamId;
-      p.leadMarginPct = members.length > 1
-        ? parseFloat((members[0].pct - members[1].pct).toFixed(1))
-        : members[0].pct;
-    } else {
-      p.leadingCandidateId = null;
-      p.leadMarginPct      = null;
-    }
+    democracyApi.precincts.recomputeLeader(p);
     p.status = "CALLED"; // counting is done everywhere
   });
 
@@ -83,15 +64,9 @@ function runOperationEpicFreedom() {
 
   APP_STATE.status = "completed";
 
-  applyBellwetherLeanings();
-  renderHeadlines();
-  renderLeaderboard();
-  renderCallOfNight();
-  renderPrecincts();
-  renderKeyDistricts();
-  renderBellwetherDesk();
-  renderPunditPanel();
+  democracyApi.bellwethers.applyLeanings();
+  democracyApi.render.all();
 
   // --- 5. Celebrate (the loader has already closed by now) -------------
-  if (typeof launchConfetti === "function") launchConfetti();
+  democracyApi.effects.confetti();
 }

@@ -14,59 +14,29 @@
 function runGenesis() {
   const n = VOTES.length;
 
-  // Random weights with a small floor so nobody is guaranteed zero
+  // Random weights with a small floor so nobody is guaranteed zero,
+  // apportioned to integer percentages summing to exactly 100.
   const weights = Array.from({ length: n }, () => Math.random() * 0.9 + 0.1);
-  const total   = weights.reduce((s, w) => s + w, 0);
-
-  // Floor each share then redistribute the remainder to the entries
-  // with the largest fractional parts (guarantees sum === 100 exactly)
-  const floored   = weights.map(w => Math.floor(w / total * 100));
-  const remainder = 100 - floored.reduce((s, p) => s + p, 0);
-  weights
-    .map((w, i) => ({ i, frac: (w / total * 100) % 1 }))
-    .sort((a, b) => b.frac - a.frac)
-    .slice(0, remainder)
-    .forEach(({ i }) => floored[i]++);
+  const floored = Utils.largestRemainderApportion(weights);
 
   // Apply new values, enforce the fixed storyline constraints (Hussein in
   // the top 3, Michael out of it), then derive trends from the change so
   // the arrows match the final ordering.
-  const prevPcts = VOTES.map(v => v.pct);
+  const prevPcts = democracyApi.votes.snapshotPcts();
   VOTES.forEach((entry, i) => { entry.pct = floored[i]; });
-  enforceVoteConstraints();
-  VOTES.forEach((entry, i) => {
-    entry.trend = entry.pct > prevPcts[i] ? "up" : entry.pct < prevPcts[i] ? "down" : "stable";
-  });
+  democracyApi.votes.enforceStorylineConstraints();
+  democracyApi.votes.applyTrends(prevPcts);
 
-  // Precinct reporting percentages that yield ~38% overall weighted average
-  const reportingMap = { "main-office": 70, "502nd": 25, "remote": 0 };
-
+  // Precinct reporting percentages that yield ~38% overall weighted average.
+  // All districts stay PENDING — too early to call anything at 38%.
+  democracyApi.precincts.setReporting({ "main-office": 70, "502nd": 25, "remote": 0 });
   PRECINCTS.forEach(p => {
-    p.reportingPct = reportingMap[p.id] ?? 0;
-    p.status       = "PENDING";
-
-    if (p.reportingPct === 0) {
-      p.leadingCandidateId = null;
-      p.leadMarginPct      = null;
-      return;
-    }
-
-    // Find leading candidate among this precinct's members
-    const members = p.memberIds
-      .map(id => VOTES.find(v => v.teamId === id))
-      .filter(Boolean)
-      .sort((a, b) => b.pct - a.pct);
-
-    if (members.length > 0 && members[0].pct > 0) {
-      p.leadingCandidateId = members[0].teamId;
-      p.leadMarginPct = members.length > 1
-        ? parseFloat((members[0].pct - members[1].pct).toFixed(1))
-        : members[0].pct;
-    }
+    democracyApi.precincts.recomputeLeader(p);
+    p.status = "PENDING";
   });
 
   // Dynamically assign pundit predictions based on the randomised vote outcome.
-  const HUSSEIN_ID = 12; // Hussein Aldor — guaranteed a top-3 spot (see enforceVoteConstraints)
+  const HUSSEIN_ID = 12; // Hussein Aldor — guaranteed a top-3 spot (see votes.enforceStorylineConstraints)
   const remoteMemberIds = (PRECINCTS.find(p => p.id === "remote") || {}).memberIds || [];
   const remoteLeader = [...VOTES]
     .filter(v => remoteMemberIds.includes(v.teamId))
@@ -81,12 +51,6 @@ function runGenesis() {
 
   APP_STATE.status = "update1";
 
-  applyBellwetherLeanings();
-  renderHeadlines();
-  renderLeaderboard();
-  renderCallOfNight();
-  renderPrecincts();
-  renderKeyDistricts();
-  renderBellwetherDesk();
-  renderPunditPanel();
+  democracyApi.bellwethers.applyLeanings();
+  democracyApi.render.all();
 }
