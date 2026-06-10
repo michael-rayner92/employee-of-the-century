@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Employee of the Month — Live Results Center</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ============================================================
+       BREAKING NEWS BANNER
+       Headlines are defined in data/headlines.js
+       (NEWS_HEADLINES_BY_STATUS, keyed by status) and cycled on a
+       timer. renderHeadlines() swaps the set when the status changes.
+       ============================================================ -->
+  <header id="breaking-news-banner" class="breaking-banner" role="banner">
+    <div class="breaking-banner__label" aria-hidden="true">
+      <span class="breaking-banner__pulse"></span>
+      BREAKING
+    </div>
+    <div id="news-ticker" class="ticker" aria-live="polite" aria-atomic="true">
+      <p id="news-ticker-item" class="ticker__item" data-headline-index="0">
+        Loading the latest from the newsroom&hellip;
+      </p>
+    </div>
+    <div class="breaking-banner__clock">
+      <span class="live-indicator" id="live-indicator">
+        <span class="live-indicator__dot" aria-hidden="true"></span>
+        LIVE
+      </span>
+      <time id="broadcast-clock" class="breaking-banner__time" datetime="">--:--:--</time>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       APP SHELL: sidebar + main content
+       ============================================================ -->
+  <div id="app-shell" class="app-shell">
+
+    <!-- ---------- LEFT SIDEBAR: alternate views ---------- -->
+    <aside id="sidebar-views" class="sidebar" aria-label="Coverage views">
+      <h2 class="sidebar__heading">Coverage Views</h2>
+      <nav class="nav" aria-label="Select a data view">
+        <ul class="nav__list" role="list">
+          <li>
+            <button type="button" class="nav__option is-active" id="view-live-results"
+                    data-view="live-results" aria-pressed="true">
+              <span class="nav__icon" aria-hidden="true">📊</span>
+              <span class="nav__label">Live Results</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="nav__option" id="view-coffee-index"
+                    data-view="coffee-index" aria-pressed="false">
+              <span class="nav__icon" aria-hidden="true">☕</span>
+              <span class="nav__label">Coffee Consumption Index</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="nav__option" id="view-snack-bribery"
+                    data-view="snack-bribery" aria-pressed="false">
+              <span class="nav__icon" aria-hidden="true">🍩</span>
+              <span class="nav__label">Snack Bribery Tracker</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="nav__option" id="view-slack-sentiment"
+                    data-view="slack-sentiment" aria-pressed="false">
+              <span class="nav__icon" aria-hidden="true">💬</span>
+              <span class="nav__label">Slack Emoji Sentiment</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="nav__option" id="view-meeting-survival"
+                    data-view="meeting-survival" aria-pressed="false">
+              <span class="nav__icon" aria-hidden="true">🛟</span>
+              <span class="nav__label">Meeting Survival Rate</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="nav__option" id="view-battleground-cubicles"
+                    data-view="battleground-cubicles" aria-pressed="false">
+              <span class="nav__icon" aria-hidden="true">🗺️</span>
+              <span class="nav__label">Battleground Cubicles</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="nav__option" id="view-exit-polls"
+                    data-view="exit-polls" aria-pressed="false">
+              <span class="nav__icon" aria-hidden="true">🚪</span>
+              <span class="nav__label">Exit Polls: Who Actually Did Work</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="nav__option" id="view-keyboard-decibel"
+                    data-view="keyboard-decibel" aria-pressed="false">
+              <span class="nav__icon" aria-hidden="true">⌨️</span>
+              <span class="nav__label">Keyboard Decibel Monitor</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="nav__option" id="view-electoral-college"
+                    data-view="electoral-college" aria-pressed="false">
+              <span class="nav__icon" aria-hidden="true">🏛️</span>
+              <span class="nav__label">Electoral College of Departments</span>
+            </button>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar__footer">
+        <p class="sidebar__note">Decision Desk standing by.</p>
+      </div>
+    </aside>
+
+    <!-- ---------- MAIN CONTENT ---------- -->
+    <main id="main-content" class="main" aria-label="Election results">
+
+      <!-- 60% column -->
+      <section id="column-primary" class="column column--primary" aria-label="Primary results">
+
+        <!-- LARGE headline card -->
+        <article id="card-main-results" class="card card--large" data-view-target="live-results">
+          <header class="card__header">
+            <h2 class="card__title">Race for Neanex Employee of the Month</h2>
+            <span class="card__badge" data-metric="precincts-reporting" data-value="0">
+              0% reporting
+            </span>
+          </header>
+          <div class="card__body">
+            <!-- INSERTION POINT: candidate leaderboard rows get injected here -->
+            <ol id="leaderboard" class="leaderboard" role="list" data-region="leaderboard">
+              <li class="leaderboard__row" data-candidate="placeholder-1">
+                <span class="leaderboard__rank">1</span>
+                <span class="leaderboard__name" data-field="name">Candidate One</span>
+                <span class="leaderboard__bar-wrap" aria-hidden="true">
+                  <span class="leaderboard__bar" data-field="bar" style="width: 58%;"></span>
+                </span>
+                <span class="leaderboard__pct" data-field="pct">58%</span>
+              </li>
+              <li class="leaderboard__row" data-candidate="placeholder-2">
+                <span class="leaderboard__rank">2</span>
+                <span class="leaderboard__name" data-field="name">Candidate Two</span>
+                <span class="leaderboard__bar-wrap" aria-hidden="true">
+                  <span class="leaderboard__bar" data-field="bar" style="width: 31%;"></span>
+                </span>
+                <span class="leaderboard__pct" data-field="pct">31%</span>
+              </li>
+              <li class="leaderboard__row" data-candidate="placeholder-3">
+                <span class="leaderboard__rank">3</span>
+                <span class="leaderboard__name" data-field="name">Candidate Three</span>
+                <span class="leaderboard__bar-wrap" aria-hidden="true">
+                  <span class="leaderboard__bar" data-field="bar" style="width: 11%;"></span>
+                </span>
+                <span class="leaderboard__pct" data-field="pct">11%</span>
+              </li>
+            </ol>
+          </div>
+        </article>
+
+        <!-- Two smaller cards side by side -->
+        <div class="card-row">
+          <article id="card-precincts" class="card card--medium">
+            <header class="card__header">
+              <h3 class="card__title">Precincts Reporting</h3>
+            </header>
+            <div class="card__body" data-region="precincts">
+              <div class="stat">
+                <span class="stat__value" data-field="value">--</span>
+                <span class="stat__label">of desks counted</span>
+              </div>
+              <div class="skeleton skeleton--bar"></div>
+              <div class="skeleton skeleton--bar"></div>
+            </div>
+          </article>
+
+          <article id="card-key-districts" class="card card--medium">
+            <header class="card__header">
+              <h3 class="card__title">Key Districts</h3>
+            </header>
+            <div class="card__body" data-region="key-districts">
+              <ul class="chip-list" role="list">
+                <li class="chip" data-district="placeholder">Break Room</li>
+                <li class="chip" data-district="placeholder">2nd Floor</li>
+                <li class="chip" data-district="placeholder">Remote</li>
+              </ul>
+              <div class="skeleton skeleton--line"></div>
+              <div class="skeleton skeleton--line skeleton--short"></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- 40% column: three stacked cards -->
+      <section id="column-secondary" class="column column--secondary" aria-label="Analysis and projections">
+
+        <article id="card-call-of-night" class="card card--side">
+          <header class="card__header">
+            <h3 class="card__title">Call of the Night</h3>
+            <span class="card__badge card__badge--accent">PROJECTED</span>
+          </header>
+          <div class="card__body" data-region="call-of-night">
+            <div class="skeleton skeleton--avatar"></div>
+            <div class="skeleton skeleton--line"></div>
+            <div class="skeleton skeleton--line skeleton--short"></div>
+          </div>
+        </article>
+
+        <article id="card-bellwether-desk" class="card card--side">
+          <header class="card__header">
+            <h3 class="card__title">Bellwether Desk</h3>
+          </header>
+          <div class="card__body" data-region="bellwether-desk">
+            <div class="skeleton skeleton--line"></div>
+            <div class="skeleton skeleton--line"></div>
+            <div class="skeleton skeleton--line skeleton--short"></div>
+          </div>
+        </article>
+
+        <article id="card-pundit-panel" class="card card--side">
+          <header class="card__header">
+            <h3 class="card__title">Pundit Panel</h3>
+          </header>
+          <div class="card__body" data-region="pundit-panel">
+            <ul class="pundit-list" role="list">
+              <li class="pundit" data-pundit="placeholder">
+                <span class="skeleton skeleton--avatar skeleton--avatar-sm"></span>
+                <span class="skeleton skeleton--line"></span>
+              </li>
+              <li class="pundit" data-pundit="placeholder">
+                <span class="skeleton skeleton--avatar skeleton--avatar-sm"></span>
+                <span class="skeleton skeleton--line"></span>
+              </li>
+            </ul>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <footer id="app-footer" class="app-footer">
+    <p>Employee of the Month — Live Results Center · Demo data only · Decision Desk &copy; The Newsroom</p>
+  </footer>
+
+  <!-- Scenario loading overlay — shown for ~4 s after each God Mode activation -->
+  <div id="loading-overlay" class="loading-overlay" hidden role="status" aria-live="polite" aria-atomic="true">
+    <div class="loading-dialog">
+      <div class="loading-dialog__icon" aria-hidden="true">⚡</div>
+      <p class="loading-dialog__scenario" id="loading-scenario-name">Genesis</p>
+      <p class="loading-dialog__label">EXECUTING SCENARIO</p>
+      <div class="loading-dialog__bar-track" aria-hidden="true">
+        <div class="loading-dialog__bar-fill" id="loading-bar-fill"></div>
+      </div>
+      <p class="loading-dialog__message" id="loading-message">Accessing classified archives...</p>
+    </div>
+  </div>
+
+  <!-- Floating God Mode trigger -->
+  <button type="button" id="god-mode-trigger" class="god-mode-trigger" aria-label="Open God Mode">
+    <span aria-hidden="true">⚡</span> GOD MODE
+  </button>
+
+  <!-- God Mode dialog overlay -->
+  <div id="god-mode-overlay" class="god-mode-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="god-mode-title">
+    <div class="god-mode-dialog">
+      <div class="god-mode-dialog__header">
+        <h2 id="god-mode-title" class="god-mode-dialog__title"><span aria-hidden="true">⚡</span> God Mode</h2>
+        <button type="button" id="god-mode-close" class="god-mode-dialog__close" aria-label="Close God Mode">✕</button>
+      </div>
+      <div id="god-mode-body" class="god-mode-dialog__body">
+        <!-- scenario cards injected by renderGodModeScenarios() -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Data files load before script.js so their globals are available -->
+  <script src="data/state.js"></script>
+  <script src="data/headlines.js"></script>
+  <script src="data/team.js"></script>
+  <script src="data/votes.js"></script>
+  <script src="data/precincts.js"></script>
+  <script src="data/pundits.js"></script>
+  <script src="data/call-of-the-night.js"></script>
+  <script src="data/god-mode.js"></script>
+  <script src="script.js"></script>
+  <script src="scripts/genesis.js"></script>
+  <script src="scripts/votes-2.js"></script>
+  <script src="scripts/thumb-on-scale.js"></script>
+  <script src="scripts/operation-birthday-cake.js"></script>
+  <script src="scripts/operation-epic-freedom.js"></script>
+</body>
+</html>
