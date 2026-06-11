@@ -502,7 +502,7 @@ body {
 }
 
 /* ============================================================
-   STATS / CHIPS / PUNDITS
+   STATS / PUNDITS
    ============================================================ */
 .stat { display: flex; align-items: baseline; gap: 8px; }
 .stat__value {
@@ -512,23 +512,6 @@ body {
   font-variant-numeric: tabular-nums;
 }
 .stat__label { color: var(--text-muted); font-size: 13px; }
-
-.chip-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.chip {
-  font-size: 13px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  background: rgba(59, 130, 246, 0.15);
-  border: 1px solid rgba(59, 130, 246, 0.35);
-  color: var(--text);
-}
 
 .pundit-list {
   list-style: none;
@@ -636,34 +619,6 @@ body {
   gap: 6px;
 }
 .pundit__arrest-icon { font-size: 14px; }
-
-/* ============================================================
-   SKELETON PLACEHOLDERS
-   ============================================================ */
-.skeleton {
-  position: relative;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 6px;
-  overflow: hidden;
-}
-.skeleton::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg,
-    transparent, rgba(255, 255, 255, 0.09), transparent);
-  transform: translateX(-100%);
-  animation: shimmer 1.6s infinite;
-}
-@keyframes shimmer { 100% { transform: translateX(100%); } }
-
-.skeleton--bar    { height: 22px; }
-.skeleton--line   { height: 12px; }
-.skeleton--short  { width: 60%; }
-.skeleton--avatar {
-  width: 56px; height: 56px; border-radius: 50%; flex: 0 0 56px;
-}
-.skeleton--avatar-sm { width: 32px; height: 32px; flex: 0 0 32px; }
 
 /* ============================================================
    PRECINCTS REPORTING CARD

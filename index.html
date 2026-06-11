@@ -20,7 +20,7 @@
     </div>
     <div id="news-ticker" class="ticker" aria-live="polite" aria-atomic="true">
       <p id="news-ticker-item" class="ticker__item" data-headline-index="0">
-        Loading the latest from the newsroom&hellip;
+        Polls are officially open across all three precincts. The race for Employee of the Month begins.
       </p>
     </div>
     <div class="breaking-banner__clock">
@@ -135,31 +135,13 @@
             </span>
           </header>
           <div class="card__body">
-            <!-- INSERTION POINT: candidate leaderboard rows get injected here -->
-            <ol id="leaderboard" class="leaderboard" role="list" data-region="leaderboard">
-              <li class="leaderboard__row" data-candidate="placeholder-1">
-                <span class="leaderboard__rank">1</span>
-                <span class="leaderboard__name" data-field="name">Candidate One</span>
-                <span class="leaderboard__bar-wrap" aria-hidden="true">
-                  <span class="leaderboard__bar" data-field="bar" style="width: 58%;"></span>
-                </span>
-                <span class="leaderboard__pct" data-field="pct">58%</span>
-              </li>
-              <li class="leaderboard__row" data-candidate="placeholder-2">
-                <span class="leaderboard__rank">2</span>
-                <span class="leaderboard__name" data-field="name">Candidate Two</span>
-                <span class="leaderboard__bar-wrap" aria-hidden="true">
-                  <span class="leaderboard__bar" data-field="bar" style="width: 31%;"></span>
-                </span>
-                <span class="leaderboard__pct" data-field="pct">31%</span>
-              </li>
-              <li class="leaderboard__row" data-candidate="placeholder-3">
-                <span class="leaderboard__rank">3</span>
-                <span class="leaderboard__name" data-field="name">Candidate Three</span>
-                <span class="leaderboard__bar-wrap" aria-hidden="true">
-                  <span class="leaderboard__bar" data-field="bar" style="width: 11%;"></span>
-                </span>
-                <span class="leaderboard__pct" data-field="pct">11%</span>
+            <!-- INSERTION POINT: candidate leaderboard rows get injected here.
+                 Static content mirrors render.leaderboard()'s pending state so
+                 the first JS paint changes nothing on screen. -->
+            <ol id="leaderboard" class="leaderboard leaderboard--empty" role="list" data-region="leaderboard">
+              <li class="leaderboard__empty-state">
+                <span class="leaderboard__empty-icon" aria-hidden="true">🗳️</span>
+                <span class="leaderboard__empty-msg">Polls are open. Awaiting first results.</span>
               </li>
             </ol>
           </div>
@@ -172,12 +154,8 @@
               <h3 class="card__title">Precincts Reporting</h3>
             </header>
             <div class="card__body" data-region="precincts">
-              <div class="stat">
-                <span class="stat__value" data-field="value">--</span>
-                <span class="stat__label">of desks counted</span>
-              </div>
-              <div class="skeleton skeleton--bar"></div>
-              <div class="skeleton skeleton--bar"></div>
+              <!-- Mirrors render.precincts()'s pending state -->
+              <p class="card-pre-init">Precincts are standing by. No votes have been counted yet.</p>
             </div>
           </article>
 
@@ -186,13 +164,8 @@
               <h3 class="card__title">Key Districts</h3>
             </header>
             <div class="card__body" data-region="key-districts">
-              <ul class="chip-list" role="list">
-                <li class="chip" data-district="placeholder">Break Room</li>
-                <li class="chip" data-district="placeholder">2nd Floor</li>
-                <li class="chip" data-district="placeholder">Remote</li>
-              </ul>
-              <div class="skeleton skeleton--line"></div>
-              <div class="skeleton skeleton--line skeleton--short"></div>
+              <!-- Mirrors render.keyDistricts()'s pending state -->
+              <p class="card-pre-init">Districts are standing by. Polls have opened across all locations.</p>
             </div>
           </article>
         </div>
@@ -204,12 +177,19 @@
         <article id="card-call-of-night" class="card card--side">
           <header class="card__header">
             <h3 class="card__title">Call of the Night</h3>
-            <span class="card__badge card__badge--accent">PROJECTED</span>
+            <span class="card__badge card__badge--muted">STANDING BY</span>
           </header>
+          <!-- Mirrors render.callOfNight()'s pending state: the desk expert
+               (CALL_OF_NIGHT.expert, resolved from TEAM) and pending quote. -->
           <div class="card__body" data-region="call-of-night">
-            <div class="skeleton skeleton--avatar"></div>
-            <div class="skeleton skeleton--line"></div>
-            <div class="skeleton skeleton--line skeleton--short"></div>
+            <div class="call-expert">
+              <img class="call-expert__avatar" src="https://lh3.googleusercontent.com/KTSqHM21Sc_YRA-zplhBdVl83OeW57K0PFrn5N8kY2IIkl_EJdnJYsnHVwokWj4GtBLvhAZZ2bVIuTkWMl-Fg6-5O8wY834RGcey=l80-w450-e365" alt="Eyosias Dawit Guyo" />
+              <div class="call-expert__info">
+                <span class="call-expert__title">Election Expert</span>
+                <span class="call-expert__name">Eyosias Dawit Guyo</span>
+              </div>
+            </div>
+            <blockquote class="call-expert__quote">&ldquo;We are live on the broadcast floor. Polling is underway across all three precincts — but it is far too early for any meaningful data. Stay tuned. This is going to be a long night.&rdquo;</blockquote>
           </div>
         </article>
 
@@ -218,9 +198,8 @@
             <h3 class="card__title">Bellwether Desk</h3>
           </header>
           <div class="card__body" data-region="bellwether-desk">
-            <div class="skeleton skeleton--line"></div>
-            <div class="skeleton skeleton--line"></div>
-            <div class="skeleton skeleton--line skeleton--short"></div>
+            <!-- Mirrors render.bellwetherDesk()'s pending state -->
+            <p class="card-pre-init">Bellwethers are on watch. First signals expected once votes begin to roll in.</p>
           </div>
         </article>
 
@@ -228,15 +207,43 @@
           <header class="card__header">
             <h3 class="card__title">Pundit Panel</h3>
           </header>
+          <!-- Mirrors render.punditPanel()'s pending state: every pundit from
+               PUNDITS with their pending quote, avatars resolved from TEAM,
+               and no call made yet ("—"). -->
           <div class="card__body" data-region="pundit-panel">
             <ul class="pundit-list" role="list">
-              <li class="pundit" data-pundit="placeholder">
-                <span class="skeleton skeleton--avatar skeleton--avatar-sm"></span>
-                <span class="skeleton skeleton--line"></span>
+              <li class="pundit" data-pundit="1">
+                <div class="pundit__head">
+                  <img class="pundit__avatar" src="https://lh3.googleusercontent.com/QWzRRJWBwmN9EvBpxOmyTJhlH6xgMif_L8BrjQJgwQNgsiaEqnIcqyM2luifQCnncb6DBcmUxv_bn5Ac483KxIgP8bdzg4YLPLs=l80-w450-e365" alt="Cille Majersdorf" />
+                  <div class="pundit__meta">
+                    <span class="pundit__name">Cille Majersdorf</span>
+                    <span class="pundit__title">Chief Analyst, The Office Weekly</span>
+                  </div>
+                  <span class="pundit__confidence pundit__confidence--high">—</span>
+                </div>
+                <p class="pundit__quote">&ldquo;My sources on the third floor have been unusually quiet this morning. In my experience, that means either a clean sweep or a complete upset. I am monitoring the situation closely.&rdquo;</p>
               </li>
-              <li class="pundit" data-pundit="placeholder">
-                <span class="skeleton skeleton--avatar skeleton--avatar-sm"></span>
-                <span class="skeleton skeleton--line"></span>
+              <li class="pundit" data-pundit="2">
+                <div class="pundit__head">
+                  <img class="pundit__avatar" src="https://lh3.googleusercontent.com/xdkJr2fhZSuRrt9tUGCgZzOEyhrAhqMgxmL-CPA0iC18sobv2OdyFKoABYVxq0kjdDwCOjgqQq9fXHbKL9FHDbsAIwX2JlZiGPntwg=l80-w450-e365" alt="Vincent Maes" />
+                  <div class="pundit__meta">
+                    <span class="pundit__name">Vincent Maes</span>
+                    <span class="pundit__title">Data Visualisation Correspondent</span>
+                  </div>
+                  <span class="pundit__confidence pundit__confidence--low">—</span>
+                </div>
+                <p class="pundit__quote">&ldquo;I have seventeen browser tabs open. My predictive model is calibrated. My coffee is hot. I have no predictions yet. This is fine.&rdquo;</p>
+              </li>
+              <li class="pundit" data-pundit="3">
+                <div class="pundit__head">
+                  <img class="pundit__avatar" src="https://lh3.googleusercontent.com/Kdfdhyx8jI_2eugjuM3fWG0_8wxQxgTKSOh8oQaa9eQGz9cGVwy90YZWn9gEGFfpUHLA2PVWe3ISwcAJnIeFMQac80wKU-_EryQN=l80-w450-e365" alt="Evy Tempst" />
+                  <div class="pundit__meta">
+                    <span class="pundit__name">Evy Tempst</span>
+                    <span class="pundit__title">Field Reporter, Remote Bureau</span>
+                  </div>
+                  <span class="pundit__confidence pundit__confidence--medium">—</span>
+                </div>
+                <p class="pundit__quote">&ldquo;The remote bureau is fully online. We are locked in and ready to vote. We cannot be swayed by free biscuits. Probably.&rdquo;</p>
               </li>
             </ul>
           </div>

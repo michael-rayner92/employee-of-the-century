@@ -1,5 +1,9 @@
 # Claude Code config, rules and skills — not part of the app
 .claude
+.mcp.json
+
+# Playwright MCP artifacts (screenshots, snapshots, console logs)
+.playwright-mcp
 
 # Editor settings
 .vscode
